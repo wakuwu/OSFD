@@ -1,0 +1,42 @@
+base: "config/base.yaml"
+
+global:
+  project_path: "/home/{===Set Here===}/OSFD/"
+  buffer:
+    global: "disk"
+
+options:
+  eval_clean: false
+
+saving_settings:
+  logging: true
+  noise: false
+  adv_img: false
+  others: true
+  best_black: true
+
+attack:
+  source: "vfnet_r50_fpn_mstrain_2x_coco"
+  steps: 10
+  max_epoch: 20
+  epsilon: 5
+  method:
+    base_attack: ['MI', 'RRB']
+    transfer_attack: "OSFD"
+    method_settings:
+      OSFD:
+        k: 3.0
+      RRB:
+        theta: 7.
+        l_s: 10
+        rho: 0.8
+        s_max: 1.10
+        sigma: 6.0
+  dataset:
+    ann_file: "data/Voc12_CoCo_800_2000/annotations/instances_train2017.json"
+    img_prefix: "data/Voc12_CoCo_800_2000/train2017/"
+  dataloader:
+    batch_size: 1
+    persistent_workers: false
+    cpu_num: 2
+    eval_cpu_num: 2

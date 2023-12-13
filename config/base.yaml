@@ -1,0 +1,116 @@
+global:
+  # ============ Absolute path to the OSFD project directory. ============
+  project_path: "/home/.../OSFD/"
+
+  # ============ Default device, cannot be modified. ============
+  device: "cuda:0"
+
+  # ============ Random seed for all. ============
+  seed: 2023
+
+  # ============ Cache intermediate variables to reduce the number of calculations. ============
+  buffer:
+    # [disk | memory]
+    # noise / amplification / momentum / grad_cln_ref / global
+    # ============ global defines the default cache location for all variables, ============
+    # ============ or you can specify a single variable cache location. ============
+    global: "memory"
+
+options:
+  # ============ Whether to test benign sample raw mAP metrics. ============
+  eval_clean: true
+
+  # ============ Whether to start debug mode or not, no adversarial examples will be stored. ============
+  debug: false
+
+saving_settings:
+  # ============ Whether to record terminal output to the log. ============
+  logging: true
+
+  # ============ Whether to enable tensorboard. ============
+  tboard: false
+
+  # ============ Whether to save noise tensor. ============
+  noise: true
+
+  # ============ Whether to save adversarial images. ============
+  adv_img: true
+
+  # ============ Whether to save other files, such as each step loss function, etc. ============
+  others: true
+
+  # ============ Whether to save the result of the white-box attack when mAP is 0, if reached. ============
+  best_white: false
+
+  # ============ Whether to save black box best migration results, default true. ============
+  best_black: true
+
+  # ============ Prefix and suffix of the result saving directory for easy differentiation of experimental results. ============
+  saving_dir:
+    prefix: ""
+    suffix: ""
+
+models:
+  train_cfg_dir: "ummdet/checkpoints/train_cfg/"
+  eval_cfg_dir: "ummdet/checkpoints/eval_cfg/"
+  models_dir: "ummdet/checkpoints/models/"
+
+  # ============ All model config files with checkpoints names. ============
+  detectors:
+    - name: "yolov3_d53_mstrain-608_273e_coco"
+      ckpt: "yolov3_d53_mstrain-608_273e_coco_20210518_115020-a2c3acb8"
+    - name: "yolof_r50_c5_8x8_1x_coco"
+      ckpt: "yolof_r50_c5_8x8_1x_coco_20210425_024427-8e864411"
+    - name: "yolox_l_8x8_300e_coco"
+      ckpt: "yolox_l_8x8_300e_coco_20211126_140236-d3bd2b23"
+    - name: "fcos_r50_caffe_fpn_gn-head_mstrain_640-800_2x_coco"
+      ckpt: "fcos_r50_caffe_fpn_gn-head_mstrain_640-800_2x_coco-d92ceeea"
+    - name: "faster_rcnn_r101_caffe_fpn_mstrain_3x_coco"
+      ckpt: "faster_rcnn_r101_caffe_fpn_mstrain_3x_coco_20210526_095742-a7ae426d"
+    - name: "vfnet_r50_fpn_mstrain_2x_coco"
+      ckpt: "vfnet_r50_fpn_mstrain_2x_coco_20201027-7cc75bd2"
+    - name: "mask_rcnn_swin-t-p4-w7_fpn_ms-crop-3x_coco"
+      ckpt: "mask_rcnn_swin-t-p4-w7_fpn_ms-crop-3x_coco_20210906_131725-bacf6f7b"
+    - name: "detr_r50_8x2_150e_coco"
+      ckpt: "detr_r50_8x2_150e_coco_20201130_194835-2c4b8974"
+
+attack:
+  default_cfg: "config/default.py"
+  # ============ Number of steps per epoch attack. ============
+  steps: 10
+
+  # ============ Maximum number of epochs, each epoch completed will test mAP metrics on all models. ============
+  max_epoch: 20
+
+  # ============ Infinite norm bound size for adversarial attacks. ============
+  max_norm: 5
+  method:
+    # ============ Integrated base attack methods, either any individual method or any combination of methods except IFGSM. ============
+    base_attack: ['IFGSM', 'MI', 'DI', 'RRB']
+    # ============ Transferable Adversarial Attacks. ============
+    transfer_attack: "OSFD"
+    method_settings:
+      null
+
+  # ============ Path of the dataset to be attacked (coco format) images with labels. ============
+  dataset:
+    ann_file: "data/coco/annotations/instances_train2017.json"
+    img_prefix: "data/coco/train2017/"
+  dataloader:
+    # ============ The size of the image batch for each simultaneous attack, ============
+    # ============ which slightly affects the mAP metric result, ============
+    # ============ is set to 1 or the same size by default to get a fair comparison. ============
+    batch_size: 1
+
+    # ============ Test stage batch size, arbitrary setting, no effect on results. ============
+    eval_batch_size: 15
+
+    persistent_workers: false
+    # ============ Number of processes in the dataloader at the time of the attack. ============
+    cpu_num: 0
+    # ============ Number of processes in the dataloader at the time of the test. ============
+    eval_cpu_num: 0
+  eval_cfg:
+    metric: [ "bbox" ]
+    metric_items: [ "mAP", "mAP_50", "mAP_75", "AR@100", "AR@300", "AR@1000" ]
+    classwise: true
